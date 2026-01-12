@@ -1,0 +1,17 @@
+# Prerequisites
+*.d
+
+# Compiled Object files
+*.o
+*.obj
+
+# The specific executable binary
+hello_world
+
+# Standard Executable extensions (just in case)
+*.exe
+*.out
+*.app
+
+# VS Code directory
+.vscode/
