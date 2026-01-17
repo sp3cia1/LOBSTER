@@ -1,3 +1,4 @@
+#include <iostream>
 #include <list>
 #include <map>
 #include <unordered_map>
@@ -8,6 +9,29 @@ class OrderBook {
     std::map<std::uint32_t, std::list<Order>, std::greater<std::uint32_t>> bids;
     std::map<std::uint32_t, std::list<Order>, std::less<std::uint32_t>> asks;
     std::unordered_map<std::uint64_t, std::list<Order>::iterator> OrderPtrs;
+
+private:
+    void deleteBidOrder(std::uint32_t price, std::uint64_t orderId) {
+        auto it = bids.find(price);
+        if (it != bids.end()) {
+            it->second.erase(OrderPtrs[orderId]);
+            if (it->second.empty()) {
+                bids.erase(it); 
+            }
+        }
+        OrderPtrs.erase(orderId);
+    }
+
+    void deleteAskOrder(std::uint32_t price, std::uint64_t orderId) {
+        auto it = asks.find(price);
+        if (it != asks.end()) {
+            it->second.erase(OrderPtrs[orderId]);
+            if (it->second.empty()) {
+                asks.erase(it);
+            }
+        }
+        OrderPtrs.erase(orderId);
+    }
 
 public:
     void addOrder(Order order){
@@ -25,24 +49,43 @@ public:
         }
     }
     void cancelOrder(std::uint64_t orderId){
-        if (!OrderPtrs.count(orderId) == 0){
+        if (OrderPtrs.count(orderId) == 0){
             return;
         }
         auto it = OrderPtrs[orderId];
+        // not using & as It is a small "pointer". Copying is safer. prevents dangling ref after erase
         if (it->side == Side::Buy){
-            bids[it->price].erase(it);
-            if (bids[it->price].empty()){
-                bids.erase(it->price);
-            }
+            deleteBidOrder(it->price, it->orderId);
         } else{
-            asks[it->price].erase(it);
-            if (asks[it->price].empty()){
-                asks.erase(it->price);
-            }
+            deleteAskOrder(it->price, it->orderId);
         }
-        OrderPtrs.erase(orderId);
     };
     void match(){
-
+        while(!bids.empty() && !asks.empty()){
+            auto& [bestBidPrice, bestBidList] = *bids.begin();
+            auto& [bestAskPrice, bestAskList] = *asks.begin();
+            // copying the list on every loop is expensive so we used & here to refrence it in memory instead.
+            if (bestBidPrice < bestAskPrice){
+                return;
+            }
+            Order& bidOrder = bestBidList.front();
+            Order& askOrder = bestAskList.front();
+            std::uint32_t bidPrice = bidOrder.price;
+            std::uint32_t askPrice = askOrder.price;
+            std::uint64_t bidId = bidOrder.orderId;
+            std::uint64_t askId = askOrder.orderId;
+            uint32_t quantity = std::min(bidOrder.quantity, askOrder.quantity);
+            std::cout << "Trade! Price: " << askOrder.price << " Qty: " << quantity << std::endl;
+            //we use ask price assuming the sell order was the maker in our simplified model
+            bidOrder.quantity -= quantity;
+            askOrder.quantity -= quantity;
+            if (bidOrder.quantity == 0){
+                deleteBidOrder(bidPrice, bidId);
+            }
+            if (askOrder.quantity == 0){
+                deleteAskOrder(askPrice, askId);
+            }
+            // after this delete call, 'bestBidList' might become a dangling reference if the list was empty and removed from the map.We do NOT use 'bestBidList' or 'bidOrder' again in this loop iteration.
+        }
     };
 };
