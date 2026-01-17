@@ -25,7 +25,22 @@ public:
         }
     }
     void cancelOrder(std::uint64_t orderId){
-
+        if (!OrderPtrs.count(orderId) == 0){
+            return;
+        }
+        auto it = OrderPtrs[orderId];
+        if (it->side == Side::Buy){
+            bids[it->price].erase(it);
+            if (bids[it->price].empty()){
+                bids.erase(it->price);
+            }
+        } else{
+            asks[it->price].erase(it);
+            if (asks[it->price].empty()){
+                asks.erase(it->price);
+            }
+        }
+        OrderPtrs.erase(orderId);
     };
     void match(){
 
