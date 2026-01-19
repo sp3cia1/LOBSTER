@@ -55,12 +55,23 @@ int main()
             perror("accept");
             continue;
         }
-        char buffer[1024];
-        ssize_t bytesRead = read(client_fd, buffer,sizeof(buffer));
-        if (bytesRead > 0) {
-            std::cout << "Client says: ";
-            std::cout.write(buffer, bytesRead);
-            std::cout << "\n";  
+        const size_t MAX_LINE = 1024;
+        std::string buffer;
+        while(true){
+            char temp[512];
+            ssize_t bytesRead = read(client_fd, temp,sizeof(temp));
+            if (bytesRead <= 0) break;
+            buffer.append(temp, bytesRead);
+            if (buffer.size() > MAX_LINE){
+                std::cerr << "Line too long, closing connection\n";
+                break;
+            }
+            size_t pos;
+            while((pos = buffer.find('\n')) != std::string::npos){
+                std::string message = buffer.substr(0,pos);
+                buffer.erase(0,pos+1);
+                std::cout << "Message: " << message << "\n";
+            }
         }
         close(client_fd);
     }
