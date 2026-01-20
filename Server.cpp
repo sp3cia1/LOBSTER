@@ -3,6 +3,8 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <iostream>
+#include "OrderHandler.h"
+#include "OrderHandler.h"
 
 int main()
 {
@@ -45,6 +47,8 @@ int main()
     std::cout << "Listening on port 54321 ...\n";
     sockaddr_in client_addr;
 
+    OrderBook orderBook;
+
     while (true)
     {
         socklen_t client_addr_len = sizeof(client_addr);
@@ -68,9 +72,10 @@ int main()
             }
             size_t pos;
             while((pos = buffer.find('\n')) != std::string::npos){
-                std::string message = buffer.substr(0,pos);
+                std::string command = buffer.substr(0,pos);
                 buffer.erase(0,pos+1);
-                std::cout << "Message: " << message << "\n";
+                std::cout << "Command: " << command << "\n";
+                handleClientCommand(orderBook, command, client_fd);
             }
         }
         close(client_fd);
