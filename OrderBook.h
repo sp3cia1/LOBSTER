@@ -4,12 +4,14 @@
 #include <map>
 #include <unordered_map>
 #include <cstdint>
+#include <mutex>
 #include "Order.h"
 
 class OrderBook {
 
 public:
     void addOrder(Order order){
+        std::lock_guard<std::mutex> guard(bookMutex);
         if (OrderPtrs.find(order.orderId) != OrderPtrs.end()){
             return;
         }
@@ -24,6 +26,7 @@ public:
         }
     }
     void cancelOrder(std::uint64_t orderId){
+        std::lock_guard<std::mutex> guard(bookMutex);
         if (OrderPtrs.count(orderId) == 0){
             return;
         }
@@ -36,6 +39,7 @@ public:
         }
     };
     void match(){
+        std::lock_guard<std::mutex> guard(bookMutex);
         while(!bids.empty() && !asks.empty()){
             auto& [bestBidPrice, bestBidList] = *bids.begin();
             auto& [bestAskPrice, bestAskList] = *asks.begin();
@@ -68,6 +72,7 @@ private:
     std::map<std::uint32_t, std::list<Order>, std::greater<std::uint32_t>> bids;
     std::map<std::uint32_t, std::list<Order>, std::less<std::uint32_t>> asks;
     std::unordered_map<std::uint64_t, std::list<Order>::iterator> OrderPtrs;
+    mutable std::mutex bookMutex;
 
     void deleteBidOrder(std::uint32_t price, std::uint64_t orderId) {
         auto it = bids.find(price);

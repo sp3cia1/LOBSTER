@@ -5,11 +5,12 @@
 #include <optional>
 #include <sys/socket.h>
 #include <cstring>
+#include <atomic>
 #include "OrderBook.h"
 
 std::uint64_t getNextId()
 {
-    static std::uint64_t id = 0;
+    static std::atomic<uint64_t> id = 0;
     return ++id;
 };
 
