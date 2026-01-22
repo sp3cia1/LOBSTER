@@ -7,30 +7,28 @@
 #include <cstring>
 #include "OrderBook.h"
 
-using namespace std;
-
-uint64_t getNextId()
+std::uint64_t getNextId()
 {
-    static uint64_t id = 0;
+    static std::uint64_t id = 0;
     return ++id;
 };
 
-void sendMessage(string message, int socket)
+void sendMessage(std::string message, int socket)
 {
     if (socket != -1)
     {
         send(socket, message.c_str(), message.length(), 0);
     }
-    cout << message << endl;
+    std::cout << message << std::endl;
 }
 
-void handleClientCommand(OrderBook &book, string command, int clientSocket)
+void handleClientCommand(OrderBook &book, std::string command, int clientSocket)
 {
-    string message;
-    stringstream ss(command);
-    string type;
-    uint32_t quantity = 0;
-    uint32_t price = 0;
+    std::string message;
+    std::stringstream ss(command);
+    std::string type;
+    std::uint32_t quantity = 0;
+    std::uint32_t price = 0;
     ss >> type;
     if (type == "B" || type == "S")
     {
@@ -39,14 +37,14 @@ void handleClientCommand(OrderBook &book, string command, int clientSocket)
         if (quantity > 0 && price > 0)
         {
             Side side = type == "B" ? Side::Buy : Side::Sell;
-            uint64_t id = getNextId();
+            std::uint64_t id = getNextId();
             Order order;
             order.orderId = id;
             order.price = price;
             order.quantity = quantity;
             order.side = side;
             book.addOrder(order);
-            message = "Order " + to_string(id) + " placed.\n";            
+            message = "Order " + std::to_string(id) + " placed.\n";            
             sendMessage(message, clientSocket);
             book.match();
         }
@@ -58,12 +56,12 @@ void handleClientCommand(OrderBook &book, string command, int clientSocket)
     }
     else if (type == "C")
     {
-        uint64_t orderId;
+        std::uint64_t orderId;
         ss >> orderId;
         if (orderId > 0)
         {
             book.cancelOrder(orderId);
-            message = "Order " + to_string(orderId) + " canceled.\n";            
+            message = "Order " + std::to_string(orderId) + " canceled.\n";            
             sendMessage(message, clientSocket);
         }
         else

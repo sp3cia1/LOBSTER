@@ -3,36 +3,10 @@
 #include <list>
 #include <map>
 #include <unordered_map>
-#include "Order.h"
 #include <cstdint>
+#include "Order.h"
 
 class OrderBook {
-    std::map<std::uint32_t, std::list<Order>, std::greater<std::uint32_t>> bids;
-    std::map<std::uint32_t, std::list<Order>, std::less<std::uint32_t>> asks;
-    std::unordered_map<std::uint64_t, std::list<Order>::iterator> OrderPtrs;
-
-private:
-    void deleteBidOrder(std::uint32_t price, std::uint64_t orderId) {
-        auto it = bids.find(price);
-        if (it != bids.end()) {
-            it->second.erase(OrderPtrs[orderId]);
-            if (it->second.empty()) {
-                bids.erase(it); 
-            }
-        }
-        OrderPtrs.erase(orderId);
-    }
-
-    void deleteAskOrder(std::uint32_t price, std::uint64_t orderId) {
-        auto it = asks.find(price);
-        if (it != asks.end()) {
-            it->second.erase(OrderPtrs[orderId]);
-            if (it->second.empty()) {
-                asks.erase(it);
-            }
-        }
-        OrderPtrs.erase(orderId);
-    }
 
 public:
     void addOrder(Order order){
@@ -89,4 +63,31 @@ public:
             // after this delete call, 'bestBidList' might become a dangling reference if the list was empty and removed from the map.We do NOT use 'bestBidList' or 'bidOrder' again in this loop iteration.
         }
     };
+
+private:    
+    std::map<std::uint32_t, std::list<Order>, std::greater<std::uint32_t>> bids;
+    std::map<std::uint32_t, std::list<Order>, std::less<std::uint32_t>> asks;
+    std::unordered_map<std::uint64_t, std::list<Order>::iterator> OrderPtrs;
+
+    void deleteBidOrder(std::uint32_t price, std::uint64_t orderId) {
+        auto it = bids.find(price);
+        if (it != bids.end()) {
+            it->second.erase(OrderPtrs[orderId]);
+            if (it->second.empty()) {
+                bids.erase(it); 
+            }
+        }
+        OrderPtrs.erase(orderId);
+    }
+
+    void deleteAskOrder(std::uint32_t price, std::uint64_t orderId) {
+        auto it = asks.find(price);
+        if (it != asks.end()) {
+            it->second.erase(OrderPtrs[orderId]);
+            if (it->second.empty()) {
+                asks.erase(it);
+            }
+        }
+        OrderPtrs.erase(orderId);
+    }
 };
