@@ -6,7 +6,6 @@
 #include <thread>
 #include <functional>
 #include "OrderHandler.h"
-#include "OrderHandler.h"
 
 void clientHandler(int clientSocket, OrderBook& book)
 {
@@ -74,6 +73,9 @@ int main()
     sockaddr_in client_addr;
 
     OrderBook orderBook;
+    orderBook.onTrade = [](uint32_t price, uint32_t qty) {
+        std::cout << "Trade Executed: " << price << " x " << qty << "\n";
+    };
 
     while (true)
     {

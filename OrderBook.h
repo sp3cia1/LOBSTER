@@ -5,11 +5,14 @@
 #include <unordered_map>
 #include <cstdint>
 #include <mutex>
+#include <functional>
 #include "Order.h"
 
 class OrderBook {
 
 public:
+    std::function<void(uint32_t, uint32_t)> onTrade;
+
     void addOrder(Order order){
         std::lock_guard<std::mutex> guard(bookMutex);
         if (OrderPtrs.find(order.orderId) != OrderPtrs.end()){
@@ -54,7 +57,9 @@ public:
             std::uint64_t bidId = bidOrder.orderId;
             std::uint64_t askId = askOrder.orderId;
             uint32_t quantity = std::min(bidOrder.quantity, askOrder.quantity);
-            std::cout << "Trade! Price: " << askOrder.price << " Qty: " << quantity << std::endl;
+            if (onTrade) {
+                onTrade(askOrder.price, quantity);
+            }
             //we use ask price assuming the sell order was the maker in our simplified model
             bidOrder.quantity -= quantity;
             askOrder.quantity -= quantity;
