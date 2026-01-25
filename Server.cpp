@@ -3,8 +3,34 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <iostream>
+#include <thread>
+#include <functional>
 #include "OrderHandler.h"
 #include "OrderHandler.h"
+
+void clientHandler(int clientSocket, OrderBook& book)
+{
+    const size_t MAX_LINE = 1024;
+    std::string buffer;
+    while (true) {
+        char temp[512];
+        ssize_t bytesRead = read(clientSocket, temp, sizeof(temp));
+        if (bytesRead <= 0) break;
+        buffer.append(temp, bytesRead);
+        if (buffer.size() > MAX_LINE) {
+            std::cerr << "Line too long, closing connection\n";
+            break;
+        }
+        size_t pos;
+        while ((pos = buffer.find('\n')) != std::string::npos) {
+            std::string command = buffer.substr(0, pos);
+            buffer.erase(0, pos + 1);
+            std::cout << "Command: " << command << "\n";
+            handleClientCommand(book, command, clientSocket);
+        }
+    }
+    close(clientSocket);
+}
 
 int main()
 {
@@ -59,26 +85,8 @@ int main()
             perror("accept");
             continue;
         }
-        const size_t MAX_LINE = 1024;
-        std::string buffer;
-        while(true){
-            char temp[512];
-            ssize_t bytesRead = read(client_fd, temp,sizeof(temp));
-            if (bytesRead <= 0) break;
-            buffer.append(temp, bytesRead);
-            if (buffer.size() > MAX_LINE){
-                std::cerr << "Line too long, closing connection\n";
-                break;
-            }
-            size_t pos;
-            while((pos = buffer.find('\n')) != std::string::npos){
-                std::string command = buffer.substr(0,pos);
-                buffer.erase(0,pos+1);
-                std::cout << "Command: " << command << "\n";
-                handleClientCommand(orderBook, command, client_fd);
-            }
-        }
-        close(client_fd);
+        std::thread clientThread(clientHandler, client_fd, std::ref(orderBook));
+        clientThread.detach();
     }
     close(socket_fd);
 }
