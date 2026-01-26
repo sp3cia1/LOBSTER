@@ -20,7 +20,6 @@ void sendMessage(std::string message, int socket)
     {
         send(socket, message.c_str(), message.length(), 0);
     }
-    std::cout << message << std::endl;
 }
 
 void handleClientCommand(OrderBook &book, std::string command, int clientSocket)

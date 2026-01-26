@@ -5,6 +5,7 @@
 #include <iostream>
 #include <thread>
 #include <functional>
+#include <netinet/tcp.h>
 #include "OrderHandler.h"
 
 void clientHandler(int clientSocket, OrderBook& book)
@@ -24,7 +25,6 @@ void clientHandler(int clientSocket, OrderBook& book)
         while ((pos = buffer.find('\n')) != std::string::npos) {
             std::string command = buffer.substr(0, pos);
             buffer.erase(0, pos + 1);
-            std::cout << "Command: " << command << "\n";
             handleClientCommand(book, command, clientSocket);
         }
     }
@@ -73,9 +73,9 @@ int main()
     sockaddr_in client_addr;
 
     OrderBook orderBook;
-    orderBook.onTrade = [](uint32_t price, uint32_t qty) {
-        std::cout << "Trade Executed: " << price << " x " << qty << "\n";
-    };
+    // orderBook.onTrade = [](uint32_t price, uint32_t qty) {
+    //     std::cout << "Trade Executed: " << price << " x " << qty << "\n";
+    // };
 
     while (true)
     {
@@ -86,6 +86,14 @@ int main()
         {
             perror("accept");
             continue;
+        } else 
+        {
+            int flag = 1;
+            // Disable Nagle's Algorithm
+            int result = setsockopt(client_fd, IPPROTO_TCP, TCP_NODELAY, (char *)&flag, sizeof(int));
+            if (result < 0) {
+                perror("setsockopt TCP_NODELAY");
+            }
         }
         std::thread clientThread(clientHandler, client_fd, std::ref(orderBook));
         clientThread.detach();
