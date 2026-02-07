@@ -41,7 +41,7 @@ public:
             deleteAskOrder(it->price, it->orderId);
         }
     };
-    void match(){
+    void match(std::function<void(uint32_t, uint32_t)> tradeCallback = nullptr){
         std::lock_guard<std::mutex> guard(bookMutex);
         while(!bids.empty() && !asks.empty()){
             auto& [bestBidPrice, bestBidList] = *bids.begin();
@@ -57,6 +57,9 @@ public:
             std::uint64_t bidId = bidOrder.orderId;
             std::uint64_t askId = askOrder.orderId;
             uint32_t quantity = std::min(bidOrder.quantity, askOrder.quantity);
+            if (tradeCallback) {
+                tradeCallback(askOrder.price, quantity);
+            }
             if (onTrade) {
                 onTrade(askOrder.price, quantity);
             }

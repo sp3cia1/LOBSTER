@@ -46,7 +46,10 @@ void handleClientCommand(OrderBook &book, std::string command, int clientSocket)
             book.addOrder(order);
             message = "Order " + std::to_string(id) + " placed.\n";            
             sendMessage(message, clientSocket);
-            book.match();
+            book.match([clientSocket](uint32_t tradePrice, uint32_t tradeQty) {
+                std::string tradeMsg = "Trade Executed: " + std::to_string(tradePrice) + " x " + std::to_string(tradeQty) + "\n";
+                sendMessage(tradeMsg, clientSocket);
+            });
         }
         else
         {
