@@ -73,7 +73,7 @@ class AlgoPanel(Vertical):
     """
 
     def compose(self):
-        yield Static("📊 ALGO STRATEGY")
+        yield Static("ORDERS")
         yield RichLog(id="algo-log", highlight=True, markup=True)
 
     def log_order(self, side: str, quantity: int, price: int):
@@ -111,7 +111,7 @@ class TapePanel(Vertical):
     """
 
     def compose(self):
-        yield Static("📜 EXCHANGE TAPE")
+        yield Static("EXCHANGE TAPE")
         yield RichLog(id="tape-log", highlight=True, markup=True)
 
     def log_message(self, message: str):
@@ -172,7 +172,7 @@ class TelemetryPanel(Vertical):
     """
 
     def compose(self):
-        yield Static("📈 TELEMETRY & SPECS")
+        yield Static("TELEMETRY & SPECS")
         yield Static(id="live-stats")
         yield Static(id="engine-specs")
 
@@ -184,7 +184,7 @@ class TelemetryPanel(Vertical):
         specs_widget = self.query_one("#engine-specs", Static)
         
         text = Text()
-        text.append("⚙️ ENGINE BENCHMARKS\n", style="bold yellow")
+        text.append("ENGINE BENCHMARKS\n", style="bold yellow")
         text.append("─" * 25 + "\n", style="dim")
         text.append("Core Latency:  ", style="cyan")
         text.append("440 ns\n", style="bold green")

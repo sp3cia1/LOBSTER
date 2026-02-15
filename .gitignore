@@ -1,18 +1,15 @@
-# Prerequisites
-*.d
+# Python
+venv/
+__pycache__/
+*.pyc
 
-# Compiled Object files
+# C++ Binaries and Objects
 *.o
-*.obj
-
-# The specific executable binary
-hello_world
-main 
-
-# Standard Executable extensions (just in case)
-*.exe
 *.out
-*.app
+*.exe
+bin/
+build/
 
-# VS Code directory
+# IDE settings
 .vscode/
+.DS_Store

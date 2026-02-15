@@ -1,4 +1,4 @@
-+import random
+import random
 import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
